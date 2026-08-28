@@ -1,4 +1,5 @@
 import { formatMoney } from "../i18n.js";
+import { sanitizeNumericInput } from "../state.js";
 
 export default function ShuttleTab({ shuttleCount, shuttlePrice, onCount, onPrice, locale, t }) {
   const subtotal = shuttleCount * (Number(shuttlePrice) || 0);
@@ -29,11 +30,10 @@ export default function ShuttleTab({ shuttleCount, shuttlePrice, onCount, onPric
         <div className="field">
           <label>{t("fieldShuttlePrice")}</label>
           <input
-            type="number"
-            min="0"
+            type="text"
             inputMode="decimal"
             value={shuttlePrice}
-            onChange={(e) => onPrice(e.target.value === "" ? 0 : Number(e.target.value))}
+            onChange={(e) => onPrice(sanitizeNumericInput(e.target.value))}
           />
         </div>
         <div className="stat-tile" style={{ border: "none", background: "var(--paper-sunk)", padding: "12px 14px" }}>

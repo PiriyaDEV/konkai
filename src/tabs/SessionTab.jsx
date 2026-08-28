@@ -1,11 +1,11 @@
-const NUMERIC_FIELDS = new Set(["courtCost", "hours", "roundMinutes"]);
+import { sanitizeNumericInput } from "../state.js";
 
 export default function SessionTab({ session, onField, onCourtStep, onSetPoints, onClearAll, t }) {
   function handleInput(field) {
-    return (e) => {
-      const raw = e.target.value;
-      onField(field, NUMERIC_FIELDS.has(field) ? (raw === "" ? 0 : Number(raw)) : raw);
-    };
+    return (e) => onField(field, e.target.value);
+  }
+  function handleNumericInput(field, options) {
+    return (e) => onField(field, sanitizeNumericInput(e.target.value, options));
   }
 
   return (
@@ -48,7 +48,7 @@ export default function SessionTab({ session, onField, onCourtStep, onSetPoints,
         </div>
         <div className="field">
           <label>{t("fieldCourtCost")}</label>
-          <input type="number" min="0" inputMode="decimal" value={session.courtCost} onChange={handleInput("courtCost")} />
+          <input type="text" inputMode="decimal" value={session.courtCost} onChange={handleNumericInput("courtCost")} />
         </div>
       </div>
 
@@ -68,11 +68,16 @@ export default function SessionTab({ session, onField, onCourtStep, onSetPoints,
         <div className="row">
           <div className="field">
             <label>{t("fieldHours")}</label>
-            <input type="number" min="0" step="0.5" inputMode="decimal" value={session.hours} onChange={handleInput("hours")} />
+            <input type="text" inputMode="decimal" value={session.hours} onChange={handleNumericInput("hours")} />
           </div>
           <div className="field">
             <label>{t("fieldRoundMinutes")}</label>
-            <input type="number" min="5" inputMode="numeric" value={session.roundMinutes} onChange={handleInput("roundMinutes")} />
+            <input
+              type="text"
+              inputMode="numeric"
+              value={session.roundMinutes}
+              onChange={handleNumericInput("roundMinutes", { decimal: false })}
+            />
           </div>
         </div>
       </div>

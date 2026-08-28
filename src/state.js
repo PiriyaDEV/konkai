@@ -110,3 +110,18 @@ export function initials(name) {
 export function avatarClass(index) {
   return "avatar c" + (index % 3);
 }
+
+// Keeps numeric text fields editable while typing (a controlled input that
+// forces value = Number(raw) on every keystroke snaps back to "0" the
+// instant the field is cleared, making it impossible to type a new value).
+// Strip everything but digits (and a single decimal point when allowed) and
+// store the raw string; convert to a real Number only where it's consumed.
+export function sanitizeNumericInput(raw, { decimal = true } = {}) {
+  if (!decimal) return raw.replace(/[^\d]/g, "");
+  let v = raw.replace(/[^\d.]/g, "");
+  const firstDot = v.indexOf(".");
+  if (firstDot !== -1) {
+    v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, "");
+  }
+  return v;
+}
