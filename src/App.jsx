@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { IconPin, IconUsers, IconShuffle, IconShuttle, IconReceipt } from "./icons.jsx";
-import { loadState, saveState, defaultState, uid } from "./state.js";
+import { loadState, saveState, defaultState, uid, getGroupId, fetchRemoteState, pushRemoteState } from "./state.js";
 import { useLocale } from "./i18n.js";
 import { createMatchState, appendRound } from "./matching.js";
 import SessionTab from "./tabs/SessionTab.jsx";
@@ -28,10 +28,44 @@ function cloneMatch(match) {
 }
 
 export default function App() {
-  const [state, setState] = useState(() => loadState());
+  const groupId = useMemo(() => getGroupId(), []);
+  const [state, setState] = useState(() => loadState(groupId));
   const { locale, setLocale, t } = useLocale();
+  const pushTimer = useRef(null);
+  const skipNextPush = useRef(false);
 
-  useEffect(() => saveState(state), [state]);
+  // Opened via the LINE bot's /group?group=<id> link: hydrate from the
+  // shared backend once, then poll it so everyone in the group sees the
+  // same data. Until that backend exists, fetchRemoteState just returns
+  // null and this quietly does nothing — see state.js.
+  useEffect(() => {
+    if (!groupId) return;
+    let cancelled = false;
+    async function pull() {
+      const remote = await fetchRemoteState(groupId);
+      if (remote && !cancelled) {
+        skipNextPush.current = true;
+        setState(remote);
+      }
+    }
+    pull();
+    const interval = setInterval(pull, 5000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [groupId]);
+
+  useEffect(() => {
+    saveState(state, groupId);
+    if (!groupId) return;
+    if (skipNextPush.current) {
+      skipNextPush.current = false;
+      return;
+    }
+    clearTimeout(pushTimer.current);
+    pushTimer.current = setTimeout(() => pushRemoteState(groupId, state), 800);
+  }, [state, groupId]);
 
   useEffect(() => {
     const el = document.getElementById("splash");

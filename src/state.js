@@ -4,6 +4,18 @@ export function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
 
+export function getGroupId() {
+  try {
+    return new URLSearchParams(window.location.search).get("group") || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function localKey(groupId) {
+  return groupId ? `${STORAGE_KEY}_group_${groupId}` : STORAGE_KEY;
+}
+
 export function defaultState() {
   return {
     activeTab: "session",
@@ -30,9 +42,9 @@ export function defaultState() {
   };
 }
 
-export function loadState() {
+export function loadState(groupId) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(localKey(groupId));
     if (!raw) return defaultState();
     const parsed = JSON.parse(raw);
     const d = defaultState();
@@ -47,11 +59,39 @@ export function loadState() {
   }
 }
 
-export function saveState(state) {
+export function saveState(state, groupId) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(localKey(groupId), JSON.stringify(state));
   } catch (e) {
     /* ignore quota / privacy-mode errors */
+  }
+}
+
+// Group-scoped sessions (opened via the LINE bot's /group?group=<id> link) are
+// backed by a shared Google Sheet through this endpoint, so everyone in the
+// group sees the same data. Every call is best-effort: until the backend is
+// wired up (or if it's ever briefly unreachable), callers keep working off
+// localStorage — see loadState/saveState above.
+export async function fetchRemoteState(groupId) {
+  try {
+    const res = await fetch(`/api/session?group=${encodeURIComponent(groupId)}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.state || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function pushRemoteState(groupId, state) {
+  try {
+    await fetch("/api/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ group: groupId, state }),
+    });
+  } catch (e) {
+    /* offline or backend not ready yet — local copy already has it */
   }
 }
 

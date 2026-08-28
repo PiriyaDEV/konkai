@@ -20,10 +20,10 @@ export default function SessionTab({ session, onField, onCourtStep, onSetPoints,
           <label>{t("fieldLocation")}</label>
           <input type="text" placeholder={t("placeholderLocation")} value={session.location} onChange={handleInput("location")} />
         </div>
-        {/* <div className="field">
+        <div className="field">
           <label>{t("fieldDate")}</label>
           <input type="date" value={session.date} onChange={handleInput("date")} />
-        </div> */}
+        </div>
         <div className="field">
           <label>{t("fieldCourtNumbers")}</label>
           <input type="text" placeholder={t("placeholderCourtNumbers")} value={session.courtNumbers} onChange={handleInput("courtNumbers")} />
