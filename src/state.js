@@ -85,13 +85,14 @@ export async function fetchRemoteState(groupId) {
 
 export async function pushRemoteState(groupId, state) {
   try {
-    await fetch("/api/session", {
+    const res = await fetch("/api/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ group: groupId, state }),
     });
+    return res.ok;
   } catch (e) {
-    /* offline or backend not ready yet — local copy already has it */
+    return false; // offline or backend not ready yet — local copy already has it
   }
 }
 

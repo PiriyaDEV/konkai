@@ -27,8 +27,15 @@ export default function App() {
   const [state, setState] = useState(() => loadState(groupId));
   const { locale, setLocale, t } = useLocale();
   const pushTimer = useRef(null);
+  const retryTimer = useRef(null);
   const skipNextPush = useRef(false);
   const lastLocalEditAt = useRef(0);
+  // True from the moment a local edit is scheduled to push until that push
+  // is *confirmed* to have landed on the shared sheet. Polling must never
+  // adopt remote state while this is true — otherwise a slow or failed push
+  // can lose the edit entirely: poll fetches the still-old sheet data and
+  // overwrites both React state and localStorage with it.
+  const pendingSync = useRef(false);
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -36,15 +43,17 @@ export default function App() {
   // shared backend once, then poll it so everyone in the group sees the
   // same data. Until that backend exists, fetchRemoteState just returns
   // null and this quietly does nothing — see state.js. Polling is skipped
-  // right after a local edit (and skipped entirely if nothing actually
-  // changed) so it never interrupts something the user is mid-typing.
+  // while a local edit is still unconfirmed, and right after any edit
+  // (and skipped entirely if nothing actually changed), so it never
+  // interrupts or loses something the user just did.
   useEffect(() => {
     if (!groupId) return;
     let cancelled = false;
     async function pull() {
+      if (pendingSync.current) return;
       if (Date.now() - lastLocalEditAt.current < 4000) return;
       const remote = await fetchRemoteState(groupId);
-      if (!remote || cancelled) return;
+      if (!remote || cancelled || pendingSync.current) return;
       if (JSON.stringify(remote) === JSON.stringify(stateRef.current)) return;
       skipNextPush.current = true;
       setState(remote);
@@ -65,8 +74,21 @@ export default function App() {
       skipNextPush.current = false;
       return;
     }
+    pendingSync.current = true;
     clearTimeout(pushTimer.current);
-    pushTimer.current = setTimeout(() => pushRemoteState(groupId, state), 800);
+    clearTimeout(retryTimer.current);
+    pushTimer.current = setTimeout(async () => {
+      const ok = await pushRemoteState(groupId, stateRef.current);
+      if (ok) {
+        pendingSync.current = false;
+      } else {
+        // one retry after a short delay; local state (and localStorage)
+        // already has the edit either way, so nothing is lost meanwhile
+        retryTimer.current = setTimeout(async () => {
+          pendingSync.current = !(await pushRemoteState(groupId, stateRef.current));
+        }, 3000);
+      }
+    }, 800);
   }, [state, groupId]);
 
   useEffect(() => {

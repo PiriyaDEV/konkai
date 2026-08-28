@@ -44,9 +44,15 @@ export function appendRound(members, courts, matchState) {
   const playing = sorted.slice(0, playN);
   const sittingOut = sorted.slice(playN).map((m) => m.id);
 
+  // Repeat teammates are weighted far above repeat opponents so the search
+  // effectively treats "never the same partner twice" as a hard rule and
+  // only allows a repeat when every sampled arrangement needs one (e.g. a
+  // small group over many rounds, where it's mathematically unavoidable).
+  const PARTNER_REPEAT_WEIGHT = 1000;
+
   let best = null;
   let bestScore = Infinity;
-  for (let attempt = 0; attempt < 350; attempt++) {
+  for (let attempt = 0; attempt < 600; attempt++) {
     const shuffled = playing.slice().sort(() => Math.random() - 0.5);
     const groups = [];
     for (let i = 0; i < shuffled.length; i += 4) groups.push(shuffled.slice(i, i + 4));
@@ -63,7 +69,7 @@ export function appendRound(members, courts, matchState) {
       splits.forEach(([t1, t2]) => {
         const pk1 = pairKey(t1[0].id, t1[1].id);
         const pk2 = pairKey(t2[0].id, t2[1].id);
-        let s = (matchState.partnerCount[pk1] || 0) * 3 + (matchState.partnerCount[pk2] || 0) * 3;
+        let s = ((matchState.partnerCount[pk1] || 0) + (matchState.partnerCount[pk2] || 0)) * PARTNER_REPEAT_WEIGHT;
         t1.forEach((p1) => t2.forEach((p2) => {
           s += matchState.opponentCount[pairKey(p1.id, p2.id)] || 0;
         }));
@@ -79,6 +85,7 @@ export function appendRound(members, courts, matchState) {
     if (score < bestScore) {
       bestScore = score;
       best = courtResult;
+      if (bestScore === 0) break; // can't do better than zero repeats at all
     }
   }
 
