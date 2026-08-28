@@ -45,10 +45,15 @@ export default function App() {
   // null and this quietly does nothing — see state.js. Polling is skipped
   // while a local edit is still unconfirmed, and right after any edit
   // (and skipped entirely if nothing actually changed), so it never
-  // interrupts or loses something the user just did.
+  // interrupts or loses something the user just did. It also pauses
+  // entirely while the tab is backgrounded — no point spending battery and
+  // requests on a screen nobody's looking at — and does one immediate pull
+  // the moment it's visible again so the data feels fresh, not stale.
   useEffect(() => {
     if (!groupId) return;
     let cancelled = false;
+    let interval = null;
+
     async function pull() {
       if (pendingSync.current) return;
       if (Date.now() - lastLocalEditAt.current < 4000) return;
@@ -58,11 +63,27 @@ export default function App() {
       skipNextPush.current = true;
       setState(remote);
     }
-    pull();
-    const interval = setInterval(pull, 5000);
+
+    function startPolling() {
+      if (interval) return;
+      pull();
+      interval = setInterval(pull, 5000);
+    }
+    function stopPolling() {
+      clearInterval(interval);
+      interval = null;
+    }
+    function onVisibilityChange() {
+      if (document.visibilityState === "visible") startPolling();
+      else stopPolling();
+    }
+
+    if (document.visibilityState === "visible") startPolling();
+    document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       cancelled = true;
-      clearInterval(interval);
+      stopPolling();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [groupId]);
 
@@ -181,6 +202,7 @@ export default function App() {
               onCourtStep={onCourtStep}
               onSetPoints={onSetPoints}
               onClearAll={onClearAll}
+              locale={locale}
               t={t}
             />
           )}

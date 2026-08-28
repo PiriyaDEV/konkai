@@ -1,6 +1,7 @@
 import { sanitizeNumericInput } from "../state.js";
+import DatePicker from "../components/DatePicker.jsx";
 
-export default function SessionTab({ session, onField, onCourtStep, onSetPoints, onClearAll, t }) {
+export default function SessionTab({ session, onField, onCourtStep, onSetPoints, onClearAll, locale, t }) {
   function handleInput(field) {
     return (e) => onField(field, e.target.value);
   }
@@ -16,24 +17,14 @@ export default function SessionTab({ session, onField, onCourtStep, onSetPoints,
       </div>
 
       <div className="card">
-        {/* Temporarily disabled — date picker was breaking out of the fixed
-            viewport on iOS Safari; location commented out alongside it per
-            request. Re-enable once the picker issue is sorted out.
         <div className="field">
           <label>{t("fieldLocation")}</label>
           <input type="text" placeholder={t("placeholderLocation")} value={session.location} onChange={handleInput("location")} />
         </div>
         <div className="field">
           <label>{t("fieldDate")}</label>
-          <input
-            type="date"
-            value={session.date}
-            onChange={handleInput("date")}
-            onFocus={() => document.body.classList.add("picker-open")}
-            onBlur={() => document.body.classList.remove("picker-open")}
-          />
+          <DatePicker value={session.date} onChange={(v) => onField("date", v)} locale={locale} />
         </div>
-        */}
         <div className="field">
           <label>{t("fieldCourtNumbers")}</label>
           <input type="text" placeholder={t("placeholderCourtNumbers")} value={session.courtNumbers} onChange={handleInput("courtNumbers")} />
