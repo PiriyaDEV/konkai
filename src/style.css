@@ -85,7 +85,7 @@ button, input, textarea, select{ font-family:inherit; }
   display:flex;
   flex-direction:column;
   position:relative;
-  overflow:hidden;
+  overflow:clip;
 }
 @media (min-width:560px){
   .backdrop{ padding:40px 20px; align-items:center; }
@@ -160,6 +160,7 @@ h1,h2,h3,.display{
 main{
   flex:1 1 auto;
   overflow-y:auto;
+  overflow-x:clip;
   padding:22px 20px 28px;
   display:flex;
   flex-direction:column;
@@ -194,6 +195,13 @@ input[type="text"], input[type="number"], input[type="date"]{
   width:100%;
   outline:none;
   transition:border-color .15s ease, box-shadow .15s ease;
+}
+input[type="date"]{
+  position:relative;
+  z-index:1;
+}
+input[type="date"]::-webkit-calendar-picker-indicator{
+  cursor:pointer;
 }
 input::placeholder{ color:var(--ink-faint); }
 input:focus-visible, button:focus-visible, .segbtn:focus-visible{
