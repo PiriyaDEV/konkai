@@ -22,7 +22,13 @@ export default function SessionTab({ session, onField, onCourtStep, onSetPoints,
         </div>
         <div className="field">
           <label>{t("fieldDate")}</label>
-          <input type="date" value={session.date} onChange={handleInput("date")} />
+          <input
+            type="date"
+            value={session.date}
+            onChange={handleInput("date")}
+            onFocus={() => document.body.classList.add("picker-open")}
+            onBlur={() => document.body.classList.remove("picker-open")}
+          />
         </div>
         <div className="field">
           <label>{t("fieldCourtNumbers")}</label>

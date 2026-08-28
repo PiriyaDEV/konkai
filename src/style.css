@@ -29,6 +29,10 @@ html,body{
   overflow:hidden;
   overscroll-behavior:none;
 }
+/* Native date-picker overlays (iOS Safari in particular) fight the fixed,
+   overflow:hidden viewport above — briefly relax it while the field is
+   focused so the picker isn't clipped or misplaced. */
+body.picker-open{ overflow:auto; }
 body{
   background: var(--paper);
   color:var(--ink);
