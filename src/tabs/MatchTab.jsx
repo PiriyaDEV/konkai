@@ -1,6 +1,6 @@
 import { IconShuffle } from "../icons.jsx";
 
-export default function MatchTab({ members, session, match, onReshuffle, onNextRound, t }) {
+export default function MatchTab({ members, session, match, onReshuffle, onClearMatches, t }) {
   const courts = session.courtCount;
   const canGenerate = members.length >= 4;
   const hasRounds = match.rounds.length > 0;
@@ -34,21 +34,19 @@ export default function MatchTab({ members, session, match, onReshuffle, onNextR
         </>
       ) : (
         <div className="btn-row">
-          <button type="button" className="btn btn-ghost" onClick={onReshuffle}>
+          <button type="button" className="btn btn-primary" onClick={onReshuffle}>
             {t("reshuffleBtn")}
           </button>
-          <button type="button" className="btn btn-primary" onClick={onNextRound}>
-            {t("nextRoundBtn")}
+          <button type="button" className="btn btn-clear" onClick={onClearMatches}>
+            {t("clearMatchesBtn")}
           </button>
         </div>
       )}
 
-      {match.rounds
-        .map((round, idx) => {
-          const isLast = idx === match.rounds.length - 1;
+      {match.rounds.map((round, idx) => {
           const restNames = round.sitOut.map((id) => memberById[id]?.name).filter(Boolean);
           return (
-            <div className={"round-block" + (isLast ? " newest-round" : "")} key={idx}>
+            <div className="round-block" key={idx}>
               <div className="round-title">
                 <span className="eyebrow">{t("roundLabel", { n: idx + 1 })}</span>
                 <span className="chip">{t("minutesChip", { n: session.roundMinutes })}</span>
@@ -76,8 +74,7 @@ export default function MatchTab({ members, session, match, onReshuffle, onNextR
               {restNames.length > 0 && <div className="sitout-line">{t("restingLabel", { names: restNames.join(", ") })}</div>}
             </div>
           );
-        })
-        .reverse()}
+        })}
     </>
   );
 }

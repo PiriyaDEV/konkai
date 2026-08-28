@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { IconPin, IconUsers, IconShuffle, IconShuttle, IconReceipt } from "./icons.jsx";
 import { loadState, saveState, defaultState, uid, getGroupId, fetchRemoteState, pushRemoteState } from "./state.js";
 import { useLocale } from "./i18n.js";
-import { createMatchState, appendRound } from "./matching.js";
+import { createMatchState, generateAllRounds } from "./matching.js";
 import SessionTab from "./tabs/SessionTab.jsx";
 import MembersTab from "./tabs/MembersTab.jsx";
 import MatchTab from "./tabs/MatchTab.jsx";
@@ -17,14 +17,9 @@ const TABS = [
   { key: "summary", labelKey: "navSummary", Icon: IconReceipt },
 ];
 
-function cloneMatch(match) {
-  return {
-    rounds: match.rounds.map((r) => ({ ...r, courts: r.courts.map((c) => ({ ...c })), sitOut: [...r.sitOut] })),
-    gamesPlayed: { ...match.gamesPlayed },
-    sitOuts: { ...match.sitOuts },
-    partnerCount: { ...match.partnerCount },
-    opponentCount: { ...match.opponentCount },
-  };
+function roundsForHours(hours, roundMinutes) {
+  const totalMinutes = Math.max(0, Number(hours) || 0) * 60;
+  return Math.max(1, Math.round(totalMinutes / Math.max(5, Number(roundMinutes) || 20)));
 }
 
 export default function App() {
@@ -33,20 +28,26 @@ export default function App() {
   const { locale, setLocale, t } = useLocale();
   const pushTimer = useRef(null);
   const skipNextPush = useRef(false);
+  const lastLocalEditAt = useRef(0);
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   // Opened via the LINE bot's /group?group=<id> link: hydrate from the
   // shared backend once, then poll it so everyone in the group sees the
   // same data. Until that backend exists, fetchRemoteState just returns
-  // null and this quietly does nothing — see state.js.
+  // null and this quietly does nothing — see state.js. Polling is skipped
+  // right after a local edit (and skipped entirely if nothing actually
+  // changed) so it never interrupts something the user is mid-typing.
   useEffect(() => {
     if (!groupId) return;
     let cancelled = false;
     async function pull() {
+      if (Date.now() - lastLocalEditAt.current < 4000) return;
       const remote = await fetchRemoteState(groupId);
-      if (remote && !cancelled) {
-        skipNextPush.current = true;
-        setState(remote);
-      }
+      if (!remote || cancelled) return;
+      if (JSON.stringify(remote) === JSON.stringify(stateRef.current)) return;
+      skipNextPush.current = true;
+      setState(remote);
     }
     pull();
     const interval = setInterval(pull, 5000);
@@ -58,6 +59,7 @@ export default function App() {
 
   useEffect(() => {
     saveState(state, groupId);
+    lastLocalEditAt.current = Date.now();
     if (!groupId) return;
     if (skipNextPush.current) {
       skipNextPush.current = false;
@@ -100,17 +102,13 @@ export default function App() {
 
   function onReshuffle() {
     setState((s) => {
-      const next = createMatchState();
-      appendRound(s.members, s.session.courtCount, next);
+      const totalRounds = roundsForHours(s.session.hours, s.session.roundMinutes);
+      const next = generateAllRounds(s.members, s.session.courtCount, totalRounds);
       return { ...s, match: next };
     });
   }
-  function onNextRound() {
-    setState((s) => {
-      const next = cloneMatch(s.match);
-      appendRound(s.members, s.session.courtCount, next);
-      return { ...s, match: next };
-    });
+  function onClearMatches() {
+    setState((s) => ({ ...s, match: createMatchState() }));
   }
 
   function onShuttleCount(n) {
@@ -173,7 +171,7 @@ export default function App() {
               session={state.session}
               match={state.match}
               onReshuffle={onReshuffle}
-              onNextRound={onNextRound}
+              onClearMatches={onClearMatches}
               t={t}
             />
           )}

@@ -102,3 +102,15 @@ export function appendRound(members, courts, matchState) {
   matchState.rounds.push(round);
   return round;
 }
+
+/**
+ * Builds a full fresh schedule of `totalRounds` rounds in one go, filling
+ * every court each round rather than requiring one click per round.
+ */
+export function generateAllRounds(members, courts, totalRounds) {
+  const matchState = createMatchState();
+  for (let i = 0; i < totalRounds; i++) {
+    appendRound(members, courts, matchState);
+  }
+  return matchState;
+}
