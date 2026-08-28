@@ -23,13 +23,19 @@
 }
 *{box-sizing:border-box;}
 :root{ color-scheme:light; }
-html,body{margin:0;padding:0;}
+html,body{
+  margin:0;padding:0;
+  height:100%;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
 body{
   background: var(--paper);
   color:var(--ink);
   font-family:var(--font-body);
   -webkit-font-smoothing:antialiased;
 }
+#root{ height:100%; }
 button, input, textarea, select{ font-family:inherit; }
 
 /* ---------- splash ---------- */
