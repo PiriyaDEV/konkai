@@ -16,6 +16,9 @@ export default function SessionTab({ session, onField, onCourtStep, onSetPoints,
       </div>
 
       <div className="card">
+        {/* Temporarily disabled — date picker was breaking out of the fixed
+            viewport on iOS Safari; location commented out alongside it per
+            request. Re-enable once the picker issue is sorted out.
         <div className="field">
           <label>{t("fieldLocation")}</label>
           <input type="text" placeholder={t("placeholderLocation")} value={session.location} onChange={handleInput("location")} />
@@ -30,6 +33,7 @@ export default function SessionTab({ session, onField, onCourtStep, onSetPoints,
             onBlur={() => document.body.classList.remove("picker-open")}
           />
         </div>
+        */}
         <div className="field">
           <label>{t("fieldCourtNumbers")}</label>
           <input type="text" placeholder={t("placeholderCourtNumbers")} value={session.courtNumbers} onChange={handleInput("courtNumbers")} />
