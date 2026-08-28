@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <clipPath id="tile">
+      <rect width="512" height="512" rx="96" />
+    </clipPath>
+  </defs>
+  <g clip-path="url(#tile)">
+    <rect width="512" height="512" fill="#D9F45C" />
+
+    <path
+      d="M0,300 C120,150 210,90 300,90 C390,90 470,150 512,235 L512,512 L0,512 Z"
+      fill="#FFFFFF"
+    />
+    <path
+      d="M-26,328 L0,300 C120,150 210,90 300,90 C390,90 470,150 512,235 L538,268"
+      fill="none" stroke="#171512" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"
+    />
+
+    <path
+      d="M68,278 C36,190 66,108 128,98 C138,58 190,52 206,94 C226,54 276,64 281,110 C312,150 300,222 258,262 C216,230 126,228 68,278 Z"
+      fill="#EA5169" stroke="#171512" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"
+    />
+
+    <g stroke="#171512" stroke-width="12" stroke-linejoin="round">
+      <ellipse cx="212" cy="344" rx="56" ry="70" fill="#1B1642" transform="rotate(-8 212 344)" />
+      <ellipse cx="366" cy="300" rx="43" ry="54" fill="#1B1642" transform="rotate(12 366 300)" />
+    </g>
+    <ellipse cx="196" cy="306" rx="20" ry="27" fill="#FFFFFF" />
+    <ellipse cx="203" cy="365" rx="14" ry="18" fill="#6B6AA0" />
+    <ellipse cx="353" cy="277" rx="15" ry="19" fill="#FFFFFF" />
+    <ellipse cx="360" cy="315" rx="10" ry="13" fill="#6B6AA0" />
+
+    <path
+      d="M259,401 C253,384 302,373 343,394 C365,405 360,443 322,468 C300,482 273,473 263,447 C256,429 256,412 259,401 Z"
+      fill="#F0A24E" stroke="#171512" stroke-width="14" stroke-linejoin="round"
+    />
+  </g>
+</svg>
